@@ -5,3 +5,7 @@ coverage
 dist
 package-lock.json
 .DS_Store
+test/samples/dist/
+sprite.png
+sprite.scss
+sprite.css

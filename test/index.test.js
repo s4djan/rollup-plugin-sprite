@@ -1,8 +1,23 @@
 import fs from "fs";
-import path from "path";
+import del from "delete";
 import test from "ava";
 import spritesmith from "../index";
 import { rollup } from "rollup";
+
+test.afterEach.cb('cleanup', t => {
+  console.log("after each");
+  
+	del.promise([
+    "./test/samples/src/images/sprite@2x.png",
+    "./test/samples/src/images/sprite.png",
+    "./test/samples/src/**/*.{css,scss}",
+    "./test/samples/dist/**/*.*",
+    
+  ]).then(function(deleted) {
+    console.log(deleted);
+    t.end();
+  });
+});
 
 test("should output sprite image and stylesheet", t => {
   return rollup({
@@ -29,9 +44,9 @@ test("should output sprite image and stylesheet", t => {
       fs.existsSync("./test/samples/src/images/sprite.png"),
       "file exists"
     );
-    t.true(fs.existsSync("./test/samples/src/scss/sprite.scss", "file exit"));
-    t.true(fs.existsSync("./test/samples/dist/images/sprite.png", "file exit"));
-    t.true(fs.existsSync("./test/samples/dist/scss/sprite.scss", "file exit"));
+    t.true(fs.existsSync("./test/samples/src/scss/sprite.scss"), "file exit");
+    t.true(fs.existsSync("./test/samples/dist/images/sprite.png"), "file exit");
+    t.true(fs.existsSync("./test/samples/dist/scss/sprite.scss"), "file exit");
   });
 });
 
@@ -57,8 +72,8 @@ test("If set customTemplate option to a template file, should output the custom 
       fs.existsSync("./test/samples/src/images/sprite.png"),
       "file exists"
     );
-    t.true(fs.existsSync("./test/samples/src/css/sprite.css", "file exit"));
-    t.true(fs.existsSync("./test/samples/dist/images/sprite.png", "file exit"));
+    t.true(fs.existsSync("./test/samples/src/css/sprite.css"), "file exit");
+    t.true(fs.existsSync("./test/samples/dist/images/sprite.png"), "file exit");
 
     let cssContent = await new Promise((resolve, reject) => {
       fs.readFile("./test/samples/src/css/sprite.css", function(err, data) {
@@ -68,8 +83,9 @@ test("If set customTemplate option to a template file, should output the custom 
         return resolve(data.toString());
       });
     });
-    t.true(cssContent.indexOf(".custom-icon-hot") > -1);
-    t.true(cssContent.indexOf(".custom-icon-new") > -1);
+    t.true(cssContent.indexOf(".custom-icon-pelican") > -1);
+    t.true(cssContent.indexOf(".custom-icon-robot") > -1);
+    t.true(cssContent.indexOf(".custom-icon-car") > -1);
   });
 });
 
@@ -118,7 +134,39 @@ test("If set customTemplate option to a template function, should output the cus
         return resolve(data.toString());
       });
     });
-    t.true(cssContent.indexOf(".custom-icon-hot") > -1);
-    t.true(cssContent.indexOf(".custom-icon-new") > -1);
+    t.true(cssContent.indexOf(".custom-icon-robot") > -1);
+    t.true(cssContent.indexOf(".custom-icon-pelican") > -1);
+    t.true(cssContent.indexOf(".custom-icon-car") > -1);
+  });
+});
+
+test("should output retina sprite image and stylesheet", t => {
+  return rollup({
+    input: "./test/samples/src/main.js",
+    plugins: [
+      spritesmith({
+        src: {
+          cwd: "./test/samples/src/images/sprite",
+          glob: "**/*.png",
+          retina: "@2x"
+        },
+        target: {
+          image: "./test/samples/src/images/sprite.png",
+          css: "./test/samples/src/scss/sprite.scss"
+        },
+        cssImageRef: "../images/sprite.png",
+        output: {
+          image: "./test/samples/dist/images/sprite.png",
+          css:"./test/samples/dist/scss/sprite.scss"
+        }
+      })
+    ]
+  }).then(() => {
+    t.true(fs.existsSync("./test/samples/src/images/sprite.png"),"file exists");
+    t.true(fs.existsSync("./test/samples/src/images/sprite@2x.png"),"file exists");
+    t.true(fs.existsSync("./test/samples/src/scss/sprite.scss"), "file exit");
+    t.true(fs.existsSync("./test/samples/dist/images/sprite.png"), "file exit");
+    t.true(fs.existsSync("./test/samples/dist/images/sprite@2x.png"), "file exit");
+    t.true(fs.existsSync("./test/samples/dist/scss/sprite.scss"), "file exit");
   });
 });
