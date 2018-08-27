@@ -14,7 +14,7 @@ test.afterEach.cb('cleanup', t => {
     "./test/samples/dist/**/*.*",
     
   ]).then(function(deleted) {
-    console.log(deleted);
+    
     t.end();
   });
 });
